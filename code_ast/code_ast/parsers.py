@@ -18,7 +18,7 @@ from git import Repo
 
 # Automatic loading of Tree-Sitter parsers --------------------------------
 
-def load_language(lang):
+def load_language(lang, rebuild):
     """
     Loads a language specification object necessary for tree-sitter.
 
@@ -49,17 +49,17 @@ def load_language(lang):
     compiled_lang_path = os.path.join(cache_path, "%s-lang.so" % lang)
     source_lang_path   = os.path.join(cache_path, "tree-sitter-%s" % lang)
 
-    if os.path.isfile(compiled_lang_path):
+    if os.path.isfile(compiled_lang_path) and not rebuild:
         return Language(compiled_lang_path, _lang_to_fnname(lang))
     
     if os.path.exists(source_lang_path) and os.path.isdir(source_lang_path):
         logger.warn("Compiling language for %s" % lang)
         _compile_lang(source_lang_path, compiled_lang_path)
-        return load_language(lang)
+        return load_language(lang, rebuild=False)
 
     logger.warn("Autoloading AST parser for %s: Start download from Github." % lang)
     _clone_parse_def_from_github(lang, source_lang_path)
-    return load_language(lang)
+    return load_language(lang, rebuild=False)
 
 # Parser ---------------------------------------------------------------
 
@@ -72,7 +72,7 @@ class ASTParser:
 
     """
 
-    def __init__(self, lang):
+    def __init__(self, lang, rebuild=False):
         """
         Autoload language specification and parser
 
@@ -85,7 +85,7 @@ class ASTParser:
         """
 
         self.lang_id = lang
-        self.lang    = load_language(lang)
+        self.lang    = load_language(lang, rebuild)
         self.parser  = Parser()
         self.parser.set_language(self.lang)
 

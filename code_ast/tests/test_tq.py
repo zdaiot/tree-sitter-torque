@@ -7,7 +7,7 @@ from code_ast import ast
 
 def run_code_cst(code_str: str, lang: str="cpp"):
     # Parse the code
-    source_ast = ast(code_str, lang=lang, syntax_error='warn')
+    source_ast = ast(code_str, lang=lang, rebuild=True, syntax_error='warn')
     return source_ast
 
 

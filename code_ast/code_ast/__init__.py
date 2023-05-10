@@ -25,7 +25,7 @@ from .transformer import (
 
 # Main function --------------------------------
 
-def ast(source_code, lang = "guess", **kwargs):
+def ast(source_code, lang = "guess", rebuild=False, **kwargs):
     """
     Parses the AST of source code of most programming languages quickly.
 
@@ -67,7 +67,7 @@ def ast(source_code, lang = "guess", **kwargs):
     config = ParserConfig(lang, **kwargs)
 
     # Parse source tree
-    parser = ASTParser(config.lang)
+    parser = ASTParser(config.lang, rebuild)
     tree, code = parser.parse(source_code)
 
     # Check for errors if necessary
