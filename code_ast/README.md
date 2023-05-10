@@ -165,3 +165,13 @@ happens.
 Distributed under the MIT license. See ``LICENSE`` for more information.
 
 We thank the developer of [tree-sitter](https://tree-sitter.github.io/tree-sitter/) library. Without tree-sitter this project would not be possible. 
+
+
+## 测试torque
+
+```bash
+cd code_ast
+mkdir build
+ln -s ../../../tree-sitter-torque/ ./
+python code_ast/tests/test_tq.py
+```

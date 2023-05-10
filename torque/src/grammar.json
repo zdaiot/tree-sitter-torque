@@ -1,5 +1,5 @@
 {
-  "name": "typescript",
+  "name": "torque",
   "word": "identifier",
   "rules": {
     "program": {

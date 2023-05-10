@@ -7,8 +7,8 @@ Main features:
 
 """
 import os
-from tree_sitter import Language, Parser
-
+from tree_sitter import Parser
+from .tree_sitter_custom import LanguageCustom as Language
 import logging as logger
 
 # For autoloading
