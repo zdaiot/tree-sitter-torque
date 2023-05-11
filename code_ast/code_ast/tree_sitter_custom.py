@@ -1,5 +1,6 @@
 """Python bindings for tree-sitter."""
-
+import os
+import subprocess
 from ctypes import cdll, c_void_p
 from distutils.ccompiler import new_compiler
 from distutils.unixccompiler import UnixCCompiler
@@ -12,7 +13,7 @@ from tree_sitter import Language
 class LanguageCustom(Language):
     """A tree-sitter language"""
     @staticmethod
-    def build_library(output_path, repo_paths):
+    def build_library(output_path, repo_paths, rebuild=False):
         """
         Build a dynamic library at the given path, based on the parser
         repositories at the given paths.
@@ -29,12 +30,14 @@ class LanguageCustom(Language):
         cpp = False
         source_paths = []
         for repo_path in repo_paths:
-            if 'typescript' in repo_path:
-                repo_path = path.join(repo_path, 'typescript')
-            if 'torque' in repo_path:
-                repo_path = path.join(repo_path, 'torque')
-
             src_path = path.join(repo_path, "src")
+            if not os.path.exists(src_path):
+                repo_path = path.join(repo_path, repo_path.split('-')[-1])
+                src_path = path.join(repo_path, "src")
+            if rebuild:
+                subprocess.run('tree-sitter generate --no-bindings', shell=True, capture_output=True, 
+                               check=True, text=True, cwd=repo_path)
+
             source_paths.append(path.join(src_path, "parser.c"))
             if path.exists(path.join(src_path, "scanner.cc")):
                 cpp = True

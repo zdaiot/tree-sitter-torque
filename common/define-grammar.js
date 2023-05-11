@@ -211,7 +211,7 @@ module.exports = function defineGrammar(dialect) {
           $.internal_module,
         ];
 
-        if (dialect === 'typescript') {
+        if (dialect === 'typescript' || dialect === 'torque') {
           choices.push($.type_assertion);
           choices.push(...previous.members.filter(member =>
             member.name !== '_jsx_element' && member.name !== 'jsx_fragment'
@@ -401,6 +401,16 @@ module.exports = function defineGrammar(dialect) {
         '}'
       ),
 
+      function_declaration: $ => prec.right('declaration', seq(
+        optional('async'),
+        optional('transitioning'),
+        'macro',
+        field('name', $.identifier),
+        $._call_signature,
+        field('body', $.statement_block),
+        optional($._automatic_semicolon)
+      )),
+  
       method_definition: $ => prec.left(seq(
         optional($.accessibility_modifier),
         optional('static'),

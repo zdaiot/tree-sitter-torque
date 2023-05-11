@@ -98,12 +98,14 @@ if __name__ == '__main__':
     }
     '''
 
-    code = '''
-@export
-macro PrintHelloWorld(): void {
-Print('Hello world!');
-}
-    '''
+#     code = '''
+# class JSProxy : public JSReceiver {
+#  public:
+#   DEFINE_FIELD_OFFSET_CONSTANTS(
+#       JSReceiver::kHeaderSize, TORQUE_GENERATED_JS_PROXY_FIELDS)
+#   // Rest of class omitted...
+# }
+#     '''
 
     visit_result = run_code_cst(code, lang='torque')
     print(visit_result)

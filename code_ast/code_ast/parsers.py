@@ -54,7 +54,7 @@ def load_language(lang, rebuild):
     
     if os.path.exists(source_lang_path) and os.path.isdir(source_lang_path):
         logger.warn("Compiling language for %s" % lang)
-        _compile_lang(source_lang_path, compiled_lang_path)
+        _compile_lang(source_lang_path, compiled_lang_path, rebuild)
         return load_language(lang, rebuild=False)
 
     logger.warn("Autoloading AST parser for %s: Start download from Github." % lang)
@@ -185,14 +185,15 @@ def _path_to_local():
     return PATH_TO_LOCALCACHE
 
 
-def _compile_lang(source_path, compiled_path):
+def _compile_lang(source_path, compiled_path, rebuild):
     logger.debug("Compile language from %s" % compiled_path)
 
     Language.build_library(
         compiled_path,
         [
             source_path
-        ]
+        ],
+        rebuild=rebuild
     )
 
 
