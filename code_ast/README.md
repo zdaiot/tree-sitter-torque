@@ -174,4 +174,6 @@ cd code_ast
 mkdir build
 ln -s ../../../tree-sitter-torque/ ./
 python code_ast/tests/test_tq.py
+# 保存日志
+python code_ast/tests/test_tq.py > code_ast/build/b.log
 ```

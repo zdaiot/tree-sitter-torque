@@ -151,24 +151,44 @@ module.exports = function defineGrammar(dialect) {
         optional($._initializer)
       ),
 
+      statement_block: $ => prec.right(seq(
+        optional('deferred'),
+        '{',
+        repeat($.statement),
+        '}',
+        optional($._automatic_semicolon)
+      )),
+
+      otherwise_statement : $ => seq(
+        'otherwise',
+        repeat1($.identifier)
+      ),
+
+      _expressions: ($, previous) => choice(
+          prec.right(1, previous), 
+          prec.right(2, $.otherwise_statement),
+        ),
+
       // override original catch_clause, add optional type annotation
       catch_clause: $ => seq(
-        'catch',
-        optional(
-          seq(
-            '(',
-            field(
-              'parameter',
-              choice($.identifier, $._destructuring_pattern)
-            ),
-            optional(
-              // only types that resolve to 'any' or 'unknown' are supported
-              // by the language but it's simpler to accept any type here.
-              field('type', $.type_annotation),
-            ),
-            ')'
-          )
-        ),
+        'label',
+        field('label_catch', seq($.identifier, optional($.arguments))),
+        // optional($.identifier),
+        // optional(
+        //   seq(
+        //     // '(',
+        //     field(
+        //       'parameter',
+        //       choice($.identifier, $._destructuring_pattern)
+        //     ),
+        //     optional(
+        //       // only types that resolve to 'any' or 'unknown' are supported
+        //       // by the language but it's simpler to accept any type here.
+        //       field('type', $.type_annotation),
+        //     ),
+        //     // ')'
+        //   )
+        // ),
         field('body', $.statement_block)
       ),
 
@@ -492,7 +512,8 @@ module.exports = function defineGrammar(dialect) {
 
       class: $ => prec('literal', seq(
         repeat(field('decorator', $.decorator)),
-        'class',
+        optional('extern'),
+        choice('class', 'struct'),
         field('name', optional($._type_identifier)),
         field('type_parameters', optional($.type_parameters)),
         optional($.class_heritage),
@@ -626,12 +647,13 @@ module.exports = function defineGrammar(dialect) {
         optional($.accessibility_modifier),
         optional($.override_modifier),
         optional('readonly'),
+        optional('implicit'),
         field('pattern', choice($.pattern, $.this))
       ),
 
       omitting_type_annotation: $ => seq('-?:', $._type),
       opting_type_annotation: $ => seq('?:', $._type),
-      type_annotation: $ => seq(':', $._type),
+      type_annotation: $ => seq(':', $._tq_type),
 
       asserts: $ => seq(
         ':',
@@ -645,6 +667,17 @@ module.exports = function defineGrammar(dialect) {
         $.readonly_type,
         $.constructor_type,
         $.infer_type
+      ),
+
+      _tq_type: $ => seq(
+        optional('constexpr'),
+        $._type
+        // choice(
+        // 'Context',
+        // 'JSTypedArray',
+        // 'uintptr',
+        // 'int31'
+        // )
       ),
 
       tuple_parameter: $ => seq(
@@ -886,7 +919,7 @@ module.exports = function defineGrammar(dialect) {
 
       _call_signature: $ => seq(
         field('type_parameters', optional($.type_parameters)),
-        field('parameters', $.formal_parameters),
+        field('parameters', repeat1($.formal_parameters)),
         field('return_type', optional(
           choice($.type_annotation, $.asserts, $.type_predicate_annotation)
         ))

@@ -98,14 +98,61 @@ if __name__ == '__main__':
     }
     '''
 
-#     code = '''
-# class JSProxy : public JSReceiver {
-#  public:
-#   DEFINE_FIELD_OFFSET_CONSTANTS(
-#       JSReceiver::kHeaderSize, TORQUE_GENERATED_JS_PROXY_FIELDS)
-#   // Rest of class omitted...
-# }
-#     '''
+    # code = '''
+    # @export
+    # macro PrintHelloWorld(): void {
+    # Print('Hello world!');
+    # }
+    # '''
+
+    # code = '''
+    # namespace string {
+    # // …
+    # macro TestVisibility() {
+    #     IsJsObject(o); // OK, global namespace visible here
+    #     IsJSArray(o);  // ERROR, not visible in this namespace
+    #     array::IsJSArray(o);  // OK, explicit namespace qualification
+    # }
+    # // …
+    # };
+    # '''
+
+    # code = '''
+    # extern class JSProxy extends JSReceiver {
+    #     target: JSReceiver|Null;
+    #     handler: JSReceiver|Null;
+    # }
+    # '''
+
+    # code = '''
+    # @export
+    # struct PromiseResolvingFunctions {
+    #     resolve: JSFunction;
+    #     reject: JSFunction;
+    # }
+
+    # struct ConstantIterator<T: type> {
+    #     macro Empty(): bool {
+    #         return false;
+    #     }
+    #     macro Next(): T labels _NoMore {
+    #         return this.value;
+    #     }
+
+    #     value: T;
+    # }
+    # '''
+
+    code = '''
+    let k: Number = 0;
+    try {
+        return FastArrayForEach(o, len, callbackfn, thisArg)
+            otherwise Bailout;
+    }
+    label Bailout(kValue: Smi) deferred {
+        k = kValue;
+    }
+    '''
 
     visit_result = run_code_cst(code, lang='torque')
     print(visit_result)
