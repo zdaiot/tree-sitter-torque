@@ -440,10 +440,17 @@ module.exports = function defineGrammar(dialect) {
         '}'
       ),
 
+      labels_declaration: $ => seq(
+        "labels",
+        commaSep1($.identifier)
+      ),
+
       function_declaration: $ => prec.right('declaration', seq(
         optional('async'),
+        optional('extern'),
         optional('transitioning'),
-        'macro',
+        optional('javascript'),
+        choice('macro', 'builtin', 'runtime', 'intrinsic %'),
         field('name', $.identifier),
         $._call_signature,
         field('body', $.statement_block),
@@ -683,7 +690,7 @@ module.exports = function defineGrammar(dialect) {
         optional($.accessibility_modifier),
         optional($.override_modifier),
         optional('readonly'),
-        optional('implicit'),
+        optional(choice('implicit', 'js-implicit')),
         field('pattern', choice($.pattern, $.this))
       ),
 

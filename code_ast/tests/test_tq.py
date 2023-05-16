@@ -2,6 +2,7 @@ import sys
 sys.path.insert(0, './code_ast')
 import code_ast
 print(code_ast)
+import argparse
 from code_ast import ast, match_span
 from code_ast import ASTVisitor
 
@@ -66,15 +67,19 @@ class CustomASTVisitor(ASTVisitor):
         print()
 
 
-def run_code_cst(code_str: str, lang: str="cpp"):
+def run_code_cst(code_str: str, lang: str="cpp", rebuild: bool=True):
     # Parse the code
-    source_ast = ast(code_str, lang=lang, rebuild=True, syntax_error='warn')
+    source_ast = ast(code_str, lang=lang, rebuild=rebuild, syntax_error='warn')
     count_visitor = CustomASTVisitor(code_str)
     source_ast.visit(count_visitor)
     return source_ast
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='hunyuan')
+    parser.add_argument('--rebuild', default=True, action='store_false')
+    args = parser.parse_args()
+
     code = '''
     transitioning macro TypedArraySpeciesCreateByLength(implicit context: Context)(
         methodName: constexpr string, exemplar: JSTypedArray, length: uintptr):
@@ -101,21 +106,21 @@ if __name__ == '__main__':
     # code = '''
     # @export
     # macro PrintHelloWorld(): void {
-    # Print('Hello world!');
+    #     Print('Hello world!');
     # }
     # '''
 
-    # code = '''
-    # namespace string {
-    # // …
-    # macro TestVisibility() {
-    #     IsJsObject(o); // OK, global namespace visible here
-    #     IsJSArray(o);  // ERROR, not visible in this namespace
-    #     array::IsJSArray(o);  // OK, explicit namespace qualification
-    # }
-    # // …
-    # };
-    # '''
+    code = '''
+    namespace string {
+    // …
+    macro TestVisibility() {
+        IsJsObject(o); // OK, global namespace visible here
+        IsJSArray(o);  // ERROR, not visible in this namespace
+        array::IsJSArray(o);  // OK, explicit namespace qualification
+    }
+    // …
+    };
+    '''
 
     # code = '''
     # extern class JSProxy extends JSReceiver {
@@ -143,16 +148,79 @@ if __name__ == '__main__':
     # }
     # '''
 
+    # code = '''
+    # let k: Number = 0;
+    # try {
+    #     return FastArrayForEach(o, len, callbackfn, thisArg)
+    #         otherwise Bailout;
+    # }
+    # label Bailout(kValue: Smi) deferred {
+    #     k = kValue;
+    # }
+    # '''
+
     code = '''
-    let k: Number = 0;
-    try {
-        return FastArrayForEach(o, len, callbackfn, thisArg)
-            otherwise Bailout;
-    }
-    label Bailout(kValue: Smi) deferred {
-        k = kValue;
+    type int32 generates 'TNode<Int32T>' constexpr 'int32_t';
+    type int31 extends int32 generates 'TNode<Int32T>' constexpr 'int31_t';
+    type Number = Smi | HeapNumber;
+    '''
+
+    code = '''
+    extern class CoverageInfo extends HeapObject {
+        const slot_count: int32;
+        slots[slot_count]: CoverageInfoSlot;
     }
     '''
 
-    visit_result = run_code_cst(code, lang='torque')
+    code = '''
+    struct DescriptorEntry {
+        key: Name|Undefined;
+        details: Smi|Undefined;
+        value: JSAny|Weak<Map>|AccessorInfo|AccessorPair|ClassPositions;
+    }
+
+    extern class DescriptorArray extends HeapObject {
+        const number_of_all_descriptors: uint16;
+        number_of_descriptors: uint16;
+        raw_number_of_marked_descriptors: uint16;
+        filler16_bits: uint16;
+        enum_cache: EnumCache;
+        descriptors[number_of_all_descriptors]: DescriptorEntry;
+    }
+    '''
+
+    code = '''
+    bitfield struct DebuggerHints extends uint31 {
+        side_effect_state: int32: 2 bit;
+        debug_is_blackboxed: bool: 1 bit;
+        computed_debug_is_blackboxed: bool: 1 bit;
+        debugging_id: int32: 20 bit;
+    }
+
+    type CompareBuiltinFn = builtin(implicit context: Context)(Object, Object, Object) => Number;
+    '''
+
+    code = '''
+    extern enum LanguageMode extends Smi {
+        kStrict,
+        kSloppy
+    }
+    '''
+
+    code = '''
+    typeswitch(language_mode) {
+        case (LanguageMode::kStrict): {
+            // ...
+        }
+        case (LanguageMode::kSloppy): {
+            // ...
+        }
+    }
+    '''
+
+    code = '''
+    intrinsic %RawConstexprCast<To: type, From: type>(f: From): To;
+    '''
+
+    visit_result = run_code_cst(code, lang='torque', rebuild=args.rebuild)
     print(visit_result)
