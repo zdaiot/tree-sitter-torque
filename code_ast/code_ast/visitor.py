@@ -43,6 +43,8 @@ class ASTVisitor:
 
         while has_next:
             current_node = cursor.node
+            # current_field_name = cursor.current_field_name
+
             # Step 1: Try to go to next child if we continue the subtree
             if self.on_visit(current_node):
                 has_next = cursor.goto_first_child()

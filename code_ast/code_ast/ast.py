@@ -56,6 +56,8 @@ def ast_to_str(tree, indent = 0):
 
     while has_next:
         current_node = cursor.node
+        # print current_field_name
+        # cursor.current_field_name()
 
         if current_node.child_count > 0 or current_node.type in LEAVE_WHITELIST:
             ast_lines.append("    "*indent + _serialize_node(current_node))

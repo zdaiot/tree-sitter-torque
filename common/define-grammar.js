@@ -169,10 +169,28 @@ module.exports = function defineGrammar(dialect) {
           prec.right(2, $.otherwise_statement),
         ),
 
+      doublecolon_arg: $ => seq(
+        $.identifier,
+        // choice('::', ':'),
+        '::',
+        $.identifier
+      ),
+
       // override original catch_clause, add optional type annotation
+      arguments: $ => seq(
+        '(',
+        commaSep(optional(choice($.expression, $.spread_element, $.doublecolon_arg))),
+        ')'
+      ),
+
+      label_call_exp: $ => seq(
+        $.identifier,
+        $.formal_parameters
+      ),
+  
       catch_clause: $ => seq(
         'label',
-        field('label_catch', seq($.identifier, optional($.arguments))),
+        field('label_catch', choice($.identifier, optional($.label_call_exp))),
         // optional($.identifier),
         // optional(
         //   seq(
