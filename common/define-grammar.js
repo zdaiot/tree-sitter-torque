@@ -139,6 +139,7 @@ module.exports = function defineGrammar(dialect) {
     rules: {
       public_field_definition: $ => seq(
         optional('declare'),
+        optional('const'),
         optional($.accessibility_modifier),
         choice(
           seq(optional('static'), optional($.override_modifier), optional('readonly')), 
@@ -169,19 +170,13 @@ module.exports = function defineGrammar(dialect) {
           prec.right(2, $.otherwise_statement),
         ),
 
-      doublecolon_arg: $ => seq(
-        $.identifier,
-        // choice('::', ':'),
-        '::',
-        $.identifier
-      ),
-
-      // override original catch_clause, add optional type annotation
-      arguments: $ => seq(
-        '(',
-        commaSep(optional(choice($.expression, $.spread_element, $.doublecolon_arg))),
-        ')'
-      ),
+      member_expression: $ => prec('member', seq(
+        field('object', choice($.expression, $.primary_expression)),
+        choice('.', '::', field('optional_chain', $.optional_chain)),
+        field('property', choice(
+          $.private_property_identifier,
+          alias($.identifier, $.property_identifier)))
+      )),
 
       label_call_exp: $ => seq(
         $.identifier,
@@ -208,6 +203,12 @@ module.exports = function defineGrammar(dialect) {
         //   )
         // ),
         field('body', $.statement_block)
+      ),
+
+      switch_statement: $ => seq(
+        choice('switch', 'typeswitch'),
+        field('value', $.parenthesized_expression),
+        field('body', $.switch_body)
       ),
 
       call_expression: $ => choice(
@@ -415,7 +416,7 @@ module.exports = function defineGrammar(dialect) {
         '{',
         repeat(choice(
           $.decorator,
-          seq($.method_definition, optional($._semicolon)),
+          seq($.function_declaration, optional($._semicolon)),
           // As it happens for functions, the semicolon insertion should not
           // happen if a block follows the closing paren, because then it's a
           // *definition*, not a declaration. Example:
@@ -531,6 +532,7 @@ module.exports = function defineGrammar(dialect) {
       class: $ => prec('literal', seq(
         repeat(field('decorator', $.decorator)),
         optional('extern'),
+        optional('bitfield'),
         choice('class', 'struct'),
         field('name', optional($._type_identifier)),
         field('type_parameters', optional($.type_parameters)),
@@ -607,9 +609,12 @@ module.exports = function defineGrammar(dialect) {
       ),
 
       enum_declaration: $ => seq(
+        optional('extern'),
         optional('const'),
         'enum',
         field('name', $.identifier),
+        optional($.extends_declaration),
+        optional($.constexpr_declaration),
         field('body', $.enum_body)
       ),
 
@@ -628,6 +633,19 @@ module.exports = function defineGrammar(dialect) {
       enum_assignment: $ => seq(
         field('name', $._property_name),
         $._initializer
+      ),
+
+      extends_declaration: $ => seq('extends', $.identifier),
+      generates_declaration: $ => seq('generates', $.string),
+      constexpr_declaration: $ => seq('constexpr', $.string),
+
+      abstract_types_declaration: $ => seq(
+        optional('transient'),
+        'type',
+        field('identifier_name', $.identifier),
+        optional($.extends_declaration),
+        optional($.generates_declaration),
+        optional($.constexpr_declaration),
       ),
 
       type_alias_declaration: $ => seq(
@@ -672,6 +690,7 @@ module.exports = function defineGrammar(dialect) {
       omitting_type_annotation: $ => seq('-?:', $._type),
       opting_type_annotation: $ => seq('?:', $._type),
       type_annotation: $ => seq(':', $._tq_type),
+      multi_iden_type: $ => seq(':', $.identifier, $.identifier, repeat($.identifier)),
 
       asserts: $ => seq(
         ':',
@@ -939,7 +958,7 @@ module.exports = function defineGrammar(dialect) {
         field('type_parameters', optional($.type_parameters)),
         field('parameters', repeat1($.formal_parameters)),
         field('return_type', optional(
-          choice($.type_annotation, $.asserts, $.type_predicate_annotation)
+          choice($.type_annotation, $.asserts, $.type_predicate_annotation, $.multi_iden_type)
         ))
       ),
 
