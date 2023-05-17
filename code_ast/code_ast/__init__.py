@@ -25,7 +25,7 @@ from .transformer import (
 
 # Main function --------------------------------
 
-def ast(source_code, lang = "guess", rebuild=False, **kwargs):
+def ast(source_code, lang = "guess", rebuild=False, base_repo_url='https://github.com/tree-sitter', **kwargs):
     """
     Parses the AST of source code of most programming languages quickly.
 
@@ -67,7 +67,7 @@ def ast(source_code, lang = "guess", rebuild=False, **kwargs):
     config = ParserConfig(lang, **kwargs)
 
     # Parse source tree
-    parser = ASTParser(config.lang, rebuild)
+    parser = ASTParser(config.lang, rebuild, base_repo_url)
     tree, code = parser.parse(source_code)
 
     # Check for errors if necessary

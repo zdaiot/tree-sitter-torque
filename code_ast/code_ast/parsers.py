@@ -18,7 +18,7 @@ from git import Repo
 
 # Automatic loading of Tree-Sitter parsers --------------------------------
 
-def load_language(lang, rebuild):
+def load_language(lang, rebuild, base_repo_url='https://github.com/tree-sitter'):
     """
     Loads a language specification object necessary for tree-sitter.
 
@@ -55,11 +55,11 @@ def load_language(lang, rebuild):
     if os.path.exists(source_lang_path) and os.path.isdir(source_lang_path):
         logger.warn("Compiling language for %s" % lang)
         _compile_lang(source_lang_path, compiled_lang_path, rebuild)
-        return load_language(lang, rebuild=False)
+        return load_language(lang, rebuild=False, base_repo_url=base_repo_url)
 
     logger.warn("Autoloading AST parser for %s: Start download from Github." % lang)
-    _clone_parse_def_from_github(lang, source_lang_path)
-    return load_language(lang, rebuild=False)
+    _clone_parse_def_from_github(lang, source_lang_path, base_repo_url)
+    return load_language(lang, rebuild=False, base_repo_url=base_repo_url)
 
 # Parser ---------------------------------------------------------------
 
@@ -72,7 +72,7 @@ class ASTParser:
 
     """
 
-    def __init__(self, lang, rebuild=False):
+    def __init__(self, lang, rebuild=False, base_repo_url='https://github.com/tree-sitter'):
         """
         Autoload language specification and parser
 
@@ -85,7 +85,7 @@ class ASTParser:
         """
 
         self.lang_id = lang
-        self.lang    = load_language(lang, rebuild)
+        self.lang    = load_language(lang, rebuild, base_repo_url)
         self.parser  = Parser()
         self.parser.set_language(self.lang)
 
@@ -212,10 +212,11 @@ def _exists_url(url):
     return req.status_code == 200
 
 
-def _clone_parse_def_from_github(lang, cache_path):
+def _clone_parse_def_from_github(lang, cache_path, base_repo_url='https://github.com/tree-sitter'):
     
     # Start by testing whethe repository exists
-    REPO_URL = "https://github.com/tree-sitter/tree-sitter-%s" % lang
+    # REPO_URL = "https://github.com/tree-sitter/tree-sitter-%s" % lang
+    REPO_URL = f"{base_repo_url}/tree-sitter-{lang}"
 
     if not _exists_url(REPO_URL):
         raise ValueError("There is no parsing def for language %s available." % lang)

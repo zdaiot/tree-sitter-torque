@@ -67,9 +67,12 @@ class CustomASTVisitor(ASTVisitor):
         print()
 
 
-def run_code_cst(code_str: str, lang: str="cpp", rebuild: bool=True):
+def run_code_cst(code_str: str, lang: str="cpp", rebuild: bool=True, 
+                 base_repo_url='https://github.com/tree-sitter'):
     # Parse the code
-    source_ast = ast(code_str, lang=lang, rebuild=rebuild, syntax_error='warn')
+    if lang == 'torque':
+        base_repo_url = 'https://github.com/zdaiot'
+    source_ast = ast(code_str, lang=lang, rebuild=rebuild, base_repo_url=base_repo_url, syntax_error='warn')
     count_visitor = CustomASTVisitor(code_str)
     source_ast.visit(count_visitor)
     return source_ast
