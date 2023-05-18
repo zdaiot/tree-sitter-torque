@@ -71,3 +71,14 @@ npm config set msvs_version 2022
 
 然后遇到报错`VCINSTALLDIR not set, not running in VS Command Prompt`, 可以参考 https://github.com/nodejs/node-gyp/blob/main/docs/Updating-npm-bundled-node-gyp.md#windows
 
+## tree-sitter学习
+
+1. 有关[precedences](https://github.com/tree-sitter/tree-sitter/pull/939)
+
+2. 有关dynamic precedence
+
+- [dynamic precedence](https://github.com/tree-sitter/tree-sitter/issues/678)
+
+- [dynamic precedence pr](https://github.com/tree-sitter/tree-sitter/pull/87)
+
+- [Corner cases with GLR, precedence, and non-associativity: Intended Semantics?](https://stackoverflow.com/questions/56982408/corner-cases-with-glr-precedence-and-non-associativity-intended-semantics)

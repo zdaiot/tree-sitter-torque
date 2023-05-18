@@ -57,7 +57,9 @@ module.exports = function defineGrammar(dialect) {
       [$.override_modifier, $.primary_expression],
       [$.decorator_call_expression, $.decorator],
       [$.literal_type, $.pattern],
-      [$.predefined_type, $.pattern]
+      [$.predefined_type, $.pattern],
+      // Priority matching function_signature
+      [$.function_signature, $.function_declaration]
     ]),
 
     conflicts: ($, previous) => previous.concat([
@@ -182,26 +184,44 @@ module.exports = function defineGrammar(dialect) {
         $.identifier,
         $.formal_parameters
       ),
-  
+
+      // escape_sequence: $ => token(prec(1, seq(
+      //   '\\',
+      //   choice(
+      //     /[^xuU]/,
+      //     /\d{2,3}/,
+      //     /x[0-9a-fA-F]{2,}/,
+      //     /u[0-9a-fA-F]{4}/,
+      //     /U[0-9a-fA-F]{8}/
+      //   )
+      // ))),
+      // string_literal: $ => seq(
+      //   choice('L"', 'u"', 'U"', 'u8"', '"'),
+      //   repeat(choice(
+      //     token.immediate(prec(1, /[^\\"\n]+/)),
+      //     $.escape_sequence
+      //   )),
+      //   '"',
+      // ),
+      // system_lib_string: $ => token(seq(
+      //   '<',
+      //   repeat(choice(/[^>\n]/, '\\>')),
+      //   '>'
+      // )),
+      // preproc_include: $ => prec.right(2, seq(
+      //   preprocessor('include'),
+      //   field('path', choice(
+      //     $.string_literal,
+      //     $.system_lib_string,
+      //     $.identifier,
+      //     $.string
+      //   )),
+      //   '\n'
+      // )),
+
       catch_clause: $ => seq(
         'label',
         field('label_catch', choice($.identifier, optional($.label_call_exp))),
-        // optional($.identifier),
-        // optional(
-        //   seq(
-        //     // '(',
-        //     field(
-        //       'parameter',
-        //       choice($.identifier, $._destructuring_pattern)
-        //     ),
-        //     optional(
-        //       // only types that resolve to 'any' or 'unknown' are supported
-        //       // by the language but it's simpler to accept any type here.
-        //       field('type', $.type_annotation),
-        //     ),
-        //     // ')'
-        //   )
-        // ),
         field('body', $.statement_block)
       ),
 
@@ -406,7 +426,10 @@ module.exports = function defineGrammar(dialect) {
 
       function_signature: $ => seq(
         optional('async'),
-        'function',
+        optional('extern'),
+        optional('transitioning'),
+        optional('javascript'),
+        choice('macro', 'builtin', 'runtime', 'intrinsic %'),
         field('name', $.identifier),
         $._call_signature,
         choice($._semicolon, $._function_signature_automatic_semicolon),
@@ -1078,4 +1101,8 @@ function sepBy (sep, rule) {
 
 function sepBy1 (sep, rule) {
   return seq(rule, repeat(seq(sep, rule)));
+}
+
+function preprocessor (command) {
+  return alias(new RegExp('#[ \t]*' + command), '#' + command)
 }
